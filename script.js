@@ -83,7 +83,6 @@ function bresenham(x0, y0, x1, y1) {
     const dirx = x0 < x1 ? 1 : -1;
 
     if (deltax >= deltay) {
-        // Основная ось X
         const deltaerr = (deltay + 1);
         for (x = x0; x != x1 + dirx; x += dirx) {
             plotPixel(x, y);
@@ -108,50 +107,59 @@ function bresenham(x0, y0, x1, y1) {
     return performance.now() - start;
 }
 
-
 function castlePitteway(x1, y1, x2, y2) {
     const start = performance.now();
     resetPlotPixel();
 
-    let dx = Math.abs(x2 - x1);
-    let dy = Math.abs(y2 - y1);
-    const sx = (x2 >= x1) ? 1 : -1;
-    const sy = (y2 >= y1) ? 1 : -1;
+    x1 = Math.round(x1);
+    y1 = Math.round(y1);
+    x2 = Math.round(x2);
+    y2 = Math.round(y2);
 
-    let x = dx;
-    let y = dy;
+    const dx = Math.abs(x2 - x1);
+    const dy = Math.abs(y2 - y1);
+    const sx = x1 < x2 ? 1 : -1;
+    const sy = y1 < y2 ? 1 : -1;
 
-    let sequence = [];
+    let x = x1;
+    let y = y1;
 
-    while (x !== y) {
-        if (x > y) {
-            sequence.push('s');
-            x -= y;
-        } else {
-            sequence.push('d');
-            y -= x;
+    let d1, d2;
+    if (dx > dy) {
+        d1 = 2 * dy;
+        d2 = d1 - 2 * dx;
+        let p = d1 - dx;
+
+        for (let i = 0; i <= dx; i++) {
+            plotPixel(x, y);
+            x += sx;
+            if (p >= 0) {
+                y += sy;
+                p += d2;
+            } else {
+                p += d1;
+            }
         }
-    }
-    sequence = sequence.concat(Array(x).fill('sd'));
+    } else {
+        d1 = 2 * dx;
+        d2 = d1 - 2 * dy;
+        let p = d1 - dy;
 
-    let x_curr = x1;
-    let y_curr = y1;
-    plotPixel(x_curr, y_curr);
-
-    for (let i = 0; i < sequence.length; i++) {
-        if (sequence[i] === 's') {
-            x_curr += sx;
-        } else if (sequence[i] === 'd') {
-            y_curr += sy;
-        } else if (sequence[i] === 'sd') {
-            x_curr += sx;
-            y_curr += sy;
+        for (let i = 0; i <= dy; i++) {
+            plotPixel(x, y);
+            y += sy;
+            if (p >= 0) {
+                x += sx;
+                p += d2;
+            } else {
+                p += d1;
+            }
         }
-        plotPixel(x_curr, y_curr);
     }
 
     return performance.now() - start;
 }
+
 
 function bresenhamCircle(xc, yc, r) {
     const start = performance.now();
@@ -241,6 +249,7 @@ function drawBresenham() {
     lastDrawnFunction = bresenham;
     lastDrawnParams = [coords.x1, coords.y1, coords.x2, coords.y2];
 }
+
 function drawCastlePitteway() {
     const coords = getInputCoordinates();
     drawGrid();
@@ -277,7 +286,7 @@ function drawGrid() {
         labelStep = 5;
     }
 
-    const gridStep = scale; // Сетка рисуется каждый логический шаг
+    const gridStep = scale; 
 
     ctx.strokeStyle = '#ddd';
     ctx.lineWidth = 1;
@@ -374,7 +383,6 @@ function plotPixel(x, y, color = 'green', connect = true) {
     plotPixel.lastY = pixelY;
 }
 
-// Сброс предыдущих координат для соединения линий
 function resetPlotPixel() {
     plotPixel.lastX = undefined;
     plotPixel.lastY = undefined;
@@ -409,7 +417,6 @@ canvas.addEventListener('mouseleave', () => {
     canvas.style.cursor = 'grab';
 });
 
-// Зум с помощью колесика мыши
 canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     const zoomIntensity = 0.05;
