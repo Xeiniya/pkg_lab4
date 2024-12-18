@@ -14,32 +14,31 @@ function stepByStep(x1, y1, x2, y2) {
     const start = performance.now();
     resetPlotPixel();
 
-    let positionX = x1;
-    let positionY = y1;
-    const endX = x2;
-    const endY = y2;
-    const stepX = (x2 > x1) ? 1 : -1;
-    const stepY = (y2 > y1) ? 1 : -1;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
 
-    while (true) {
-        plotPixel(positionX, positionY);
+    if (Math.abs(dx) > Math.abs(dy)) { 
+        const stepX = dx > 0 ? 1 : -1;
+        const stepY = dy / Math.abs(dx);
 
-        if (positionX === endX && positionY === endY) {
-            break;
+        let y = y1;
+        for (let x = x1; x !== x2 + stepX; x += stepX) {
+            plotPixel(x, Math.round(y));
+            y += stepY;
         }
+    } else {
+        const stepY = dy > 0 ? 1 : -1;
+        const stepX = dx / Math.abs(dy);
 
-        if (positionX !== endX) {
-            positionX += stepX;
-        }
-
-        if (positionY !== endY) {
-            positionY += stepY;
+        let x = x1;
+        for (let y = y1; y !== y2 + stepY; y += stepY) {
+            plotPixel(Math.round(x), y);
+            x += stepX;
         }
     }
 
     return performance.now() - start;
 }
-
 function DDA(x1, y1, x2, y2) {
     const start = performance.now();
     resetPlotPixel();
